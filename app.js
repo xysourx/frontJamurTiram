@@ -28,12 +28,19 @@ const elements = {
   deleteData: document.getElementById('delete-data')
 };
 
-const client = mqtt.connect(MQTT_BROKER);
+const clientId = 'web_' + Math.random().toString(16).substring(2, 10);
+const client = mqtt.connect(MQTT_BROKER, {
+  clientId: clientId,
+  clean: true,
+  connectTimeout: 5000,
+  reconnectPeriod: 2000,
+});
 
 client.on('connect', () => {
-  console.log('Terhubung ke MQTT Broker');
+  console.log('Terhubung ke MQTT Broker dengan ID:', clientId);
   client.subscribe(MQTT_TOPIC_TELEMETRI);
 });
+
 
 client.on('message', (topic, message) => {
   if (topic === MQTT_TOPIC_TELEMETRI) {
@@ -76,6 +83,7 @@ async function fetchHistoryFromSupabase() {
     });
 
     currentPage = 1;
+    
     renderTables();
     
     if(document.getElementById('grafik').classList.contains('active')) {
@@ -176,13 +184,27 @@ function initChart() {
 }
 
 elements.pumpKabut.addEventListener('click', () => {
-  if (isAuto) return;
-  const newState = pumpState === 'off' ? 'ON' : 'OFF';
+  if (isAuto) {
+    alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol kabut!");
+    return; 
+  }
+
+  pumpState = pumpState === 'off' ? 'on' : 'off';
+  updatePumpUI();
+
+  const newState = pumpState === 'on' ? 'ON' : 'OFF';
   client.publish(MQTT_TOPIC_MIST, newState);
 });
 
 elements.modeKabut.addEventListener('click', () => {
-  const newMode = isAuto ? 'MANUAL' : 'AUTO';
+  isAuto = !isAuto;
+  elements.modeKabut.textContent = isAuto ? 'AUTO' : 'MANUAL';
+  
+  if (!isAuto) pumpState = 'off'; 
+  
+  updatePumpUI();
+
+  const newMode = isAuto ? 'AUTO' : 'MANUAL';
   client.publish(MQTT_TOPIC_MODE, newMode);
 });
 
