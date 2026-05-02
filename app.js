@@ -44,17 +44,25 @@ client.on('connect', () => {
 
 client.on('message', (topic, message) => {
   if (topic === MQTT_TOPIC_TELEMETRI) {
-    const payload = JSON.parse(message.toString());
-    
-    elements.suhu.textContent = payload.suhu.toFixed(1) + "°C";
-    elements.udara.textContent = Math.round(payload.udara) + "%";
-    elements.air.textContent = payload.air.toFixed(1) + " cm";
-    
-    pumpState = payload.mist_state;
-    isAuto = payload.mode === 'AUTO';
-    elements.modeKabut.textContent = payload.mode;
-    
-    updatePumpUI();
+    try {
+      const payload = JSON.parse(message.toString());
+      
+      const valSuhu = payload.suhu != null ? payload.suhu : 0.0;
+      const valUdara = payload.udara != null ? payload.udara : 0;
+      const valAir = payload.air != null ? payload.air : 0.0;
+      
+      elements.suhu.textContent = valSuhu.toFixed(1) + "°C";
+      elements.udara.textContent = Math.round(valUdara) + "%";
+      elements.air.textContent = valAir.toFixed(1) + " cm";
+      
+      pumpState = payload.mist_state;
+      isAuto = payload.mode === 'AUTO';
+      elements.modeKabut.textContent = payload.mode;
+      
+      updatePumpUI();
+    } catch (e) {
+      console.error("Gagal memproses pesan MQTT:", e);
+    }
   }
 });
 
