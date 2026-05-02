@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monitoring Jamur Tiram</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Monitoring Jamur Tiram</h1>
+    <div class="datetime" id="datetime"></div>
+  </div>
+
+  <nav class="navbar-desktop">
+    <a href="#" class="active" data-page="home">Beranda</a>
+    <a href="#" data-page="grafik">Grafik</a>
+    <a href="#" data-page="riwayat">Riwayat</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- BERANDA -->
+  <section id="home" class="page active">
+    <div class="grid">
+      <!-- Kabut -->
+      <div class="card kabut-card">
+        <h3>Kabut</h3>
+        <div class="pump-btn-wrapper kabut-control">
+          <button id="pump-kabut" class="pump-btn square" data-state="off">OFF</button>
+          <button id="mode-kabut" class="mode-btn">AUTO</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Suhu</h3>
+        <p id="suhu">0°C</p>
+      </div>
+
+      <div class="card">
+        <h3>Kelembapan Udara</h3>
+        <p id="udara">0%</p>
+      </div>
+
+      <div class="card">
+        <h3>Ketinggian Air</h3>
+        <p id="air">0 cm</p>
+      </div>
+    </div>
+
+    <div class="history-full">
+      <h3>Riwayat Terbaru</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Jam</th>
+            <th>Suhu</th>
+            <th>Udara</th>
+            <th>Air</th>
+            <th>Kabut</th>
+          </tr>
+        </thead>
+        <tbody id="history"></tbody>
+      </table>
+      <div class="pagination" id="pagination-home"></div>
+    </div>
+  </section>
+
+  <!-- GRAFIK -->
+  <section id="grafik" class="page">
+    <h2 class="page-title">Grafik Monitoring</h2>
+    <canvas id="chart"></canvas>
+  </section>
+
+  <!-- RIWAYAT -->
+  <section id="riwayat" class="page">
+    <h2 class="page-title">Riwayat Data</h2>
+    <div class="history-full">
+      <div class="header-row">
+        <button id="download-csv">Download CSV</button>
+        <button id="delete-data">Hapus Data</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Jam</th>
+            <th>Suhu</th>
+            <th>Udara</th>
+            <th>Air</th>
+            <th>Kabut</th>
+          </tr>
+        </thead>
+        <tbody id="history-full"></tbody>
+      </table>
+      <div class="pagination" id="pagination-riwayat"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- BOTTOM NAVIGATION (Mobile) -->
+<nav class="bottom-nav">
+  <a href="#" data-page="home" class="active">
+    <span class="icon">🏠</span>
+    <span class="label">Beranda</span>
+  </a>
+  <a href="#" data-page="grafik">
+    <span class="icon">📊</span>
+    <span class="label">Grafik</span>
+  </a>
+  <a href="#" data-page="riwayat">
+    <span class="icon">📋</span>
+    <span class="label">Riwayat</span>
+  </a>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>

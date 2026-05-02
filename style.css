@@ -1,0 +1,366 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f8f9fa;
+  color: #333;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ==================== HEADER ==================== */
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-left {
+  flex: 1;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.datetime {
+  font-size: 0.93rem;
+  color: #ecf0f1;
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+/* Navbar Desktop */
+.navbar-desktop {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.navbar-desktop a {
+  color: #bdc3c7;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.navbar-desktop a:hover,
+.navbar-desktop a.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== MAIN CONTENT ==================== */
+main {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+.page {
+  display: none;
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Title - Grafik & Riwayat */
+.page-title {
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 1.8rem 0 1.2rem 0.5rem;
+}
+
+/* Grid Cards */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 600px) {
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 900px) {
+  .grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card h3 {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.card p {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Kabut Control */
+.kabut-card {
+  padding: 1.5rem 1.2rem;
+  text-align: center;
+}
+
+.pump-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.pump-btn.square {
+  width: 82px;
+  height: 82px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.pump-btn.square[data-state="off"] { background: #e74c3c; }
+.pump-btn.square[data-state="on"] { background: #27ae60; }
+
+.mode-btn {
+  width: 130px;
+  height: 82px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #2c3e50;
+  background: #f1f1f1;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.mode-btn:hover {
+  background: #e5e5e5;
+  transform: translateY(-3px);
+}
+
+/* History Card */
+.history-full {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.header-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.2rem;
+  gap: 10px;
+}
+
+#download-csv {
+  padding: 10px 18px;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+#download-csv:hover { background: #2980b9; }
+
+#delete-data {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding:10px 18px;
+  border-radius: 18px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+#delete-data:hover {
+  background-color: #c0392b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th, td {
+  padding: 12px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  background: #f8f9fa;
+  color: #2c3e50;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+/* Chart */
+canvas {
+  max-width: 100%;
+  height: 380px !important;
+  background: white;
+  padding: 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 1.5rem 0;
+}
+
+/* ==================== BOTTOM NAVIGATION ==================== */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  border-top: 1px solid #eee;
+}
+
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 10px 0 8px;
+  color: #7f8c8d;
+  text-decoration: none;
+  font-size: 0.75rem;
+}
+
+.bottom-nav a.active {
+  color: #3498db;
+  font-weight: 600;
+}
+
+.bottom-nav .icon {
+  font-size: 1.45rem;
+  margin-bottom: 4px;
+}
+
+.bottom-nav .label {
+  font-size: 0.73rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bottom-nav { display: flex; }
+  .navbar-desktop { display: none; }
+  main { padding-bottom: 80px; }
+  header { padding: 1rem; }
+}
+
+@media (min-width: 600px) {
+  .pump-btn.square,
+  .mode-btn {
+    width: 78px;
+    height: 78px;
+    font-size: 1.25rem;
+  }
+}
+
+/* ==================== PAGINATION ==================== */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  background: white;
+  border: 1px solid #ddd;
+  color: #2c3e50;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #f1f1f1;
+  border-color: #ccc;
+}
+
+.pagination button.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.pagination button:disabled {
+  background: #f9f9f9;
+  color: #ccc;
+  cursor: not-allowed;
+  border-color: #eee;
+}
