@@ -1,6 +1,8 @@
 let data = [];
 let pumpState = 'off';
 let isAuto = true;
+let pumpAirState = 'off'; 
+let isAutoAir = true;
 let chart = null;
 
 const ITEMS_PER_PAGE = 30;
@@ -10,6 +12,8 @@ const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
 const MQTT_TOPIC_TELEMETRI = 'jamurTrm/nsrl/telemetri';
 const MQTT_TOPIC_MODE = 'jamurTrm/nsrl/kontrol/mode';
 const MQTT_TOPIC_MIST = 'jamurTrm/nsrl/kontrol/mist';
+const MQTT_TOPIC_MODE_AIR = 'jamurTrm/nsrl/kontrol/mode_air';
+const MQTT_TOPIC_PUMP_AIR = 'jamurTrm/nsrl/kontrol/pump_air';
 
 const SUPABASE_URL = 'https://nnbppefydzfquldtewvz.supabase.co/rest/v1/log_jamur?select=*&order=created_at.desc&limit=300';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYnBwZWZ5ZHpmcXVsZHRld3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTE1ODQsImV4cCI6MjA5MzEyNzU4NH0.baQcxt0P0Oc7U45YlLc9uWXfoZKDRSYO4fqNspjH1j8';
@@ -19,35 +23,61 @@ const elements = {
   udara: document.getElementById('udara'),
   air: document.getElementById('air'),
   history: document.getElementById('history'),
+
   historyFull: document.getElementById('history-full'),
   pumpKabut: document.getElementById('pump-kabut'),
   modeKabut: document.getElementById('mode-kabut'),
   kabutCard: document.querySelector('.kabut-card'),
+
+  pumpAir: document.getElementById('pump-air'),
+  modeAir: document.getElementById('mode-air'),
+  airCard: document.querySelector('.air-card'),
+
   datetime: document.getElementById('datetime'),
   downloadCsv: document.getElementById('download-csv'),
   deleteData: document.getElementById('delete-data')
 };
 
-const client = mqtt.connect(MQTT_BROKER);
+const clientId = 'web_' + Math.random().toString(16).substring(2, 10);
+const client = mqtt.connect(MQTT_BROKER, {
+  clientId: clientId,
+  clean: true,
+  connectTimeout: 5000,
+  reconnectPeriod: 2000,
+});
 
 client.on('connect', () => {
-  console.log('Terhubung ke MQTT Broker');
+  console.log('Terhubung ke MQTT Broker dengan ID:', clientId);
   client.subscribe(MQTT_TOPIC_TELEMETRI);
 });
 
+
 client.on('message', (topic, message) => {
   if (topic === MQTT_TOPIC_TELEMETRI) {
-    const payload = JSON.parse(message.toString());
-    
-    elements.suhu.textContent = payload.suhu.toFixed(1) + "°C";
-    elements.udara.textContent = Math.round(payload.udara) + "%";
-    elements.air.textContent = payload.air.toFixed(1) + " cm";
-    
-    pumpState = payload.mist_state;
-    isAuto = payload.mode === 'AUTO';
-    elements.modeKabut.textContent = payload.mode;
-    
-    updatePumpUI();
+    try {
+      const payload = JSON.parse(message.toString());
+      
+      const valSuhu = payload.suhu != null ? payload.suhu : 0.0;
+      const valUdara = payload.udara != null ? payload.udara : 0;
+      const valAir = payload.air != null ? payload.air : 0.0;
+      
+      elements.suhu.textContent = valSuhu.toFixed(1) + "°C";
+      elements.udara.textContent = Math.round(valUdara) + "%";
+      elements.air.textContent = valAir.toFixed(1) + " cm";
+      
+      pumpState = payload.mist_state || 'off';
+      isAuto = payload.mode === 'AUTO';
+      elements.modeKabut.textContent = payload.mode || 'AUTO';
+      
+      pumpAirState = payload.pump_state || 'off';
+      isAutoAir = payload.mode_air !== 'MANUAL'; 
+      elements.modeAir.textContent = isAutoAir ? 'AUTO' : 'MANUAL';
+      
+      updatePumpUI();
+      updateAirPumpUI(); 
+    } catch (e) {
+      console.error("Gagal memproses pesan MQTT:", e);
+    }
   }
 });
 
@@ -76,6 +106,7 @@ async function fetchHistoryFromSupabase() {
     });
 
     currentPage = 1;
+    
     renderTables();
     
     if(document.getElementById('grafik').classList.contains('active')) {
@@ -176,13 +207,27 @@ function initChart() {
 }
 
 elements.pumpKabut.addEventListener('click', () => {
-  if (isAuto) return;
-  const newState = pumpState === 'off' ? 'ON' : 'OFF';
+  if (isAuto) {
+    alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol kabut!");
+    return; 
+  }
+
+  pumpState = pumpState === 'off' ? 'on' : 'off';
+  updatePumpUI();
+
+  const newState = pumpState === 'on' ? 'ON' : 'OFF';
   client.publish(MQTT_TOPIC_MIST, newState);
 });
 
 elements.modeKabut.addEventListener('click', () => {
-  const newMode = isAuto ? 'MANUAL' : 'AUTO';
+  isAuto = !isAuto;
+  elements.modeKabut.textContent = isAuto ? 'AUTO' : 'MANUAL';
+  
+  if (!isAuto) pumpState = 'off'; 
+  
+  updatePumpUI();
+
+  const newMode = isAuto ? 'AUTO' : 'MANUAL';
   client.publish(MQTT_TOPIC_MODE, newMode);
 });
 
@@ -192,6 +237,44 @@ function updatePumpUI() {
   elements.pumpKabut.style.opacity = isAuto ? '0.45' : '1';
   elements.pumpKabut.style.pointerEvents = isAuto ? 'none' : 'auto';
   elements.kabutCard.classList.toggle('active', pumpState === 'on' && !isAuto);
+}
+
+// ==================== KONTROL POMPA AIR ====================
+elements.pumpAir.addEventListener('click', () => {
+  if (isAutoAir) {
+    alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol Pompa Air!");
+    return; 
+  }
+
+  pumpAirState = pumpAirState === 'off' ? 'on' : 'off';
+  updateAirPumpUI();
+
+  const newState = pumpAirState === 'on' ? 'ON' : 'OFF';
+  client.publish(MQTT_TOPIC_PUMP_AIR, newState);
+});
+
+elements.modeAir.addEventListener('click', () => {
+  isAutoAir = !isAutoAir;
+  elements.modeAir.textContent = isAutoAir ? 'AUTO' : 'MANUAL';
+  
+  if (!isAutoAir) pumpAirState = 'off'; 
+  
+  updateAirPumpUI();
+
+  const newMode = isAutoAir ? 'AUTO' : 'MANUAL';
+  client.publish(MQTT_TOPIC_MODE_AIR, newMode);
+});
+
+function updateAirPumpUI() {
+  if(!elements.pumpAir) return; 
+  
+  elements.pumpAir.textContent = pumpAirState.toUpperCase();
+  elements.pumpAir.dataset.state = pumpAirState;
+  elements.pumpAir.style.opacity = isAutoAir ? '0.45' : '1';
+  elements.pumpAir.style.pointerEvents = isAutoAir ? 'none' : 'auto';
+  if(elements.airCard) {
+    elements.airCard.classList.toggle('active', pumpAirState === 'on' && !isAutoAir);
+  }
 }
 
 elements.downloadCsv.addEventListener('click', () => {
