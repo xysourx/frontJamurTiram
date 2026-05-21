@@ -19,6 +19,7 @@
 
   <nav class="navbar-desktop">
     <a href="#" class="active" data-page="home">Beranda</a>
+    <a href="#" data-page="control">Kontrol</a>
     <a href="#" data-page="grafik">Grafik</a>
     <a href="#" data-page="riwayat">Riwayat</a>
   </nav>
@@ -26,25 +27,9 @@
 
 <main>
 
+  <!-- BERANDA (Khusus Monitoring Sensor) -->
   <section id="home" class="page active">
     <div class="grid">
-
-      <div class="card kabut-card">
-        <h3>Kabut</h3>
-        <div class="pump-btn-wrapper kabut-control">
-          <button id="pump-kabut" class="pump-btn square" data-state="off">OFF</button>
-          <button id="mode-kabut" class="mode-btn">AUTO</button>
-        </div>
-      </div>
-
-      <div class="card air-card">
-        <h3>Pompa Air</h3>
-        <div class="pump-btn-wrapper air-control">
-          <button id="pump-air" class="pump-btn square" data-state="off">OFF</button>
-          <button id="mode-air" class="mode-btn">AUTO</button>
-        </div>
-      </div>
-
       <div class="card">
         <h3>Suhu</h3>
         <p id="suhu">0°C</p>
@@ -66,7 +51,7 @@
       <table>
         <thead>
           <tr>
-            <th>Jam</th>
+            <th>Hari, Jam</th>
             <th>Suhu</th>
             <th>Udara</th>
             <th>Air</th>
@@ -76,6 +61,50 @@
         <tbody id="history"></tbody>
       </table>
       <div class="pagination" id="pagination-home"></div>
+    </div>
+  </section>
+
+  <!-- KONTROL (Khusus Tombol Aktuator) -->
+  <section id="control" class="page">
+    <h2 class="page-title">Kontrol Aktuator</h2>
+    <div class="grid">
+      <!-- Kabut -->
+      <div class="card kabut-card">
+        <h3>Kabut</h3>
+        <div class="pump-btn-wrapper kabut-control">
+          <button id="pump-kabut" class="pump-btn square" data-state="off">OFF</button>
+          <button id="mode-kabut" class="mode-btn">AUTO</button>
+        </div>
+      </div>
+
+      <!-- Pompa Air -->
+      <div class="card air-card">
+        <h3>Pompa Air</h3>
+        <div class="pump-btn-wrapper air-control">
+          <button id="pump-air" class="pump-btn square" data-state="off">OFF</button>
+          <button id="mode-air" class="mode-btn">AUTO</button>
+        </div>
+      </div>
+
+      <div class="card fan-card" style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 20px; text-align: left; align-items: center;">
+        <div style="flex: 1; min-width: 250px;">
+          <h3 style="margin-bottom: 15px; color: #7f8c8d; text-transform: uppercase; font-weight: 600;">Kipas</h3>
+          <div class="pump-btn-wrapper fan-control" style="justify-content: flex-start; margin-top: 0;">
+            <button id="pump-fan" class="pump-btn square" data-state="off">OFF</button>
+            <button id="mode-fan" class="mode-btn">AUTO</button>
+          </div>
+        </div>
+
+        <div style="flex: 2; min-width: 250px;">
+          <label for="fan-speed" style="font-size: 0.95rem; font-weight: 600; color: #34495e; display: block; margin-bottom: 5px;">
+            Atur Kecepatan: <span id="speed-val" style="color: #3498db; font-size: 1.1rem;">100</span>%
+          </label>
+          <input type="range" id="fan-speed" min="0" max="100" value="100" style="width: 100%; margin: 10px 0; cursor: pointer;">
+          <button id="set-speed-btn" class="mode-btn" style="width: 100%; height: 40px; background: #3498db; color: white; border-radius: 8px;">
+            SET SPEED KIPAS
+          </button>
+        </div>
+
     </div>
   </section>
 
@@ -96,7 +125,7 @@
       <table>
         <thead>
           <tr>
-            <th>Jam</th>
+            <th>Hari, Jam</th>
             <th>Suhu</th>
             <th>Udara</th>
             <th>Air</th>
@@ -116,6 +145,10 @@
   <a href="#" data-page="home" class="active">
     <span class="icon">🏠</span>
     <span class="label">Beranda</span>
+  </a>
+  <a href="#" data-page="control">
+    <span class="icon">🎛️</span>
+    <span class="label">Kontrol</span>
   </a>
   <a href="#" data-page="grafik">
     <span class="icon">📊</span>

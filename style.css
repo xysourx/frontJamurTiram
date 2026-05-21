@@ -107,11 +107,12 @@ main {
 }
 
 @media (min-width: 600px) {
-  .grid { grid-template-columns: repeat(3, 1fr); }
+  .grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* PERBAIKAN: Diubah menjadi maksimal 3 agar pas dengan jumlah kartu sensor */
 @media (min-width: 900px) {
-  .grid { grid-template-columns: repeat(5, 1fr); }
+  .grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .card {
@@ -143,8 +144,8 @@ main {
   color: #2c3e50;
 }
 
-/* Kabut Control */
-.kabut-card {
+/* Kabut & Air Control */
+.kabut-card, .air-card {
   padding: 1.5rem 1.2rem;
   text-align: center;
 }

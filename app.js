@@ -1,9 +1,12 @@
 let data = [];
 let pumpState = 'off';
 let isAuto = true;
-let pumpAirState = 'off'; 
+let pumpAirState = 'off';
 let isAutoAir = true;
 let chart = null;
+let pumpFanState = 'off';
+let isAutoFan = true;
+let fanSpeed = 100;
 
 const ITEMS_PER_PAGE = 30;
 let currentPage = 1;
@@ -15,7 +18,11 @@ const MQTT_TOPIC_MIST = 'jamurTrm/nsrl/kontrol/mist';
 const MQTT_TOPIC_MODE_AIR = 'jamurTrm/nsrl/kontrol/mode_air';
 const MQTT_TOPIC_PUMP_AIR = 'jamurTrm/nsrl/kontrol/pump_air';
 
-const SUPABASE_URL = 'https://nnbppefydzfquldtewvz.supabase.co/rest/v1/log_jamur?select=*&order=created_at.desc&limit=300';
+const MQTT_TOPIC_MODE_FAN = 'jamurTrm/nsrl/kontrol/mode_fan';
+const MQTT_TOPIC_FAN = 'jamurTrm/nsrl/kontrol/fan';
+const MQTT_TOPIC_FAN_SPEED = 'jamurTrm/nsrl/kontrol/fan_speed';
+
+const SUPABASE_URL = 'https://nnbppefydzfquldtewvz.supabase.co/rest/v1/log_jamur?select=*&order=created_at.desc&limit=168';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYnBwZWZ5ZHpmcXVsZHRld3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTE1ODQsImV4cCI6MjA5MzEyNzU4NH0.baQcxt0P0Oc7U45YlLc9uWXfoZKDRSYO4fqNspjH1j8';
 
 const elements = {
@@ -32,6 +39,12 @@ const elements = {
   pumpAir: document.getElementById('pump-air'),
   modeAir: document.getElementById('mode-air'),
   airCard: document.querySelector('.air-card'),
+
+  pumpFan: document.getElementById('pump-fan'),
+  modeFan: document.getElementById('mode-fan'),
+  fanSpeedInput: document.getElementById('fan-speed'),
+  speedValText: document.getElementById('speed-val'),
+  setSpeedBtn: document.getElementById('set-speed-btn'),
 
   datetime: document.getElementById('datetime'),
   downloadCsv: document.getElementById('download-csv'),
@@ -56,33 +69,37 @@ client.on('message', (topic, message) => {
   if (topic === MQTT_TOPIC_TELEMETRI) {
     try {
       const payload = JSON.parse(message.toString());
-      
+
       const valSuhu = payload.suhu != null ? payload.suhu : 0.0;
       const valUdara = payload.udara != null ? payload.udara : 0;
       const valAir = payload.air != null ? payload.air : 0.0;
-      
+
       elements.suhu.textContent = valSuhu.toFixed(1) + "°C";
       elements.udara.textContent = Math.round(valUdara) + "%";
       elements.air.textContent = valAir.toFixed(1) + " cm";
-      
+
       pumpState = payload.mist_state || 'off';
       isAuto = payload.mode === 'AUTO';
       elements.modeKabut.textContent = payload.mode || 'AUTO';
-      
-      pumpAirState = payload.pump_state || 'off';
-      isAutoAir = payload.mode_air !== 'MANUAL'; 
-      elements.modeAir.textContent = isAutoAir ? 'AUTO' : 'MANUAL';
-      
-      updatePumpUI();
-      updateAirPumpUI(); 
 
+      pumpAirState = payload.pump_state || 'off';
+      isAutoAir = payload.mode_air !== 'MANUAL';
+      elements.modeAir.textContent = isAutoAir ? 'AUTO' : 'MANUAL';
+
+      fanState = payload.fan_state || 'off';
+      isAutoFan = payload.mode_fan !== 'MANUAL';
+      elements.modeFan.textContent = isAutoFan ? 'AUTO' : 'MANUAL';
+
+      updatePumpUI();
+      updateAirPumpUI();
+      updateFanUI();
     } catch (e) {
       console.error("Gagal memproses pesan MQTT:", e);
     }
   }
 });
 
-async function fetchHistoryFromSupabase() { 
+async function fetchHistoryFromSupabase() {
   try {
     const response = await fetch(SUPABASE_URL, {
       method: 'GET',
@@ -92,13 +109,17 @@ async function fetchHistoryFromSupabase() {
         'Content-Type': 'application/json'
       }
     });
-    
+
     const result = await response.json();
-    
+
     data = result.map(item => {
       const dateObj = new Date(item.created_at);
       return {
-        time: dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        time: dateObj.toLocaleTimeString('id-ID', { 
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit' }),
         suhu: parseFloat(item.suhu),
         udara: parseInt(item.kelembapan),
         air: parseFloat(item.jarak_air),
@@ -107,10 +128,10 @@ async function fetchHistoryFromSupabase() {
     });
 
     currentPage = 1;
-    
+
     renderTables();
-    
-    if(document.getElementById('grafik').classList.contains('active')) {
+
+    if (document.getElementById('grafik').classList.contains('active')) {
       initChart();
     }
   } catch (error) {
@@ -143,7 +164,7 @@ updateTime();
 function renderTables() {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  
+
   const paginatedData = data.slice(startIndex, endIndex);
 
   const rowHTML = paginatedData.map(d => `
@@ -182,7 +203,7 @@ function renderPaginationControls() {
   document.getElementById('pagination-riwayat').innerHTML = html;
 }
 
-window.changePage = function(pageNumber) {
+window.changePage = function (pageNumber) {
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
   if (pageNumber >= 1 && pageNumber <= totalPages) {
     currentPage = pageNumber;
@@ -192,7 +213,7 @@ window.changePage = function(pageNumber) {
 
 function initChart() {
   if (chart) chart.destroy();
-  const chartData = [...data].reverse(); 
+  const chartData = [...data].reverse();
 
   chart = new Chart(document.getElementById('chart'), {
     type: 'line',
@@ -210,7 +231,7 @@ function initChart() {
 elements.pumpKabut.addEventListener('click', () => {
   if (isAuto) {
     alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol kabut!");
-    return; 
+    return;
   }
 
   pumpState = pumpState === 'off' ? 'on' : 'off';
@@ -223,9 +244,9 @@ elements.pumpKabut.addEventListener('click', () => {
 elements.modeKabut.addEventListener('click', () => {
   isAuto = !isAuto;
   elements.modeKabut.textContent = isAuto ? 'AUTO' : 'MANUAL';
-  
-  if (!isAuto) pumpState = 'off'; 
-  
+
+  if (!isAuto) pumpState = 'off';
+
   updatePumpUI();
 
   const newMode = isAuto ? 'AUTO' : 'MANUAL';
@@ -244,7 +265,7 @@ function updatePumpUI() {
 elements.pumpAir.addEventListener('click', () => {
   if (isAutoAir) {
     alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol Pompa Air!");
-    return; 
+    return;
   }
 
   pumpAirState = pumpAirState === 'off' ? 'on' : 'off';
@@ -257,23 +278,69 @@ elements.pumpAir.addEventListener('click', () => {
 elements.modeAir.addEventListener('click', () => {
   isAutoAir = !isAutoAir;
   elements.modeAir.textContent = isAutoAir ? 'AUTO' : 'MANUAL';
-  
-  if (!isAutoAir) pumpAirState = 'off'; 
-  
+
+  if (!isAutoAir) pumpAirState = 'off';
+
   updateAirPumpUI();
 
   const newMode = isAutoAir ? 'AUTO' : 'MANUAL';
   client.publish(MQTT_TOPIC_MODE_AIR, newMode);
 });
 
+elements.pumpFan.addEventListener('click', () => {
+  if (isAutoFan) {
+    alert("Ubah mode ke MANUAL terlebih dahulu untuk menyalakan kipas non-stop!");
+    return;
+  }
+
+  fanState = fanState === 'off' ? 'on' : 'off';
+  updateFanUI();
+
+  const newState = fanState === 'on' ? 'ON' : 'OFF';
+  client.publish(MQTT_TOPIC_FAN, newState);
+});
+
+elements.modeFan.addEventListener('click', () => {
+  isAutoFan = !isAutoFan;
+  elements.modeFan.textContent = isAutoFan ? 'AUTO' : 'MANUAL';
+
+  if (!isAutoFan) fanState = 'off';
+
+  updateFanUI();
+
+  const newMode = isAutoFan ? 'AUTO' : 'MANUAL';
+  client.publish(MQTT_TOPIC_MODE_FAN, newMode);
+});
+
+function updateFanUI() {
+  if (!elements.pumpFan) return;
+
+  elements.pumpFan.textContent = fanState.toUpperCase();
+  elements.pumpFan.dataset.state = fanState;
+
+  elements.pumpFan.style.opacity = isAutoFan ? '0.45' : '1';
+  elements.pumpFan.style.pointerEvents = isAutoFan ? 'none' : 'auto';
+}
+
+elements.fanSpeedInput.addEventListener('input', (e) => {
+  elements.speedValText.textContent = e.target.value;
+});
+
+elements.setSpeedBtn.addEventListener('click', () => {
+  const speedPercent = elements.fanSpeedInput.value;
+  const pwmValue = Math.round((speedPercent / 100) * 255);
+
+  client.publish(MQTT_TOPIC_FAN_SPEED, pwmValue.toString());
+});
+
 function updateAirPumpUI() {
-  if(!elements.pumpAir) return; 
-  
+  if (!elements.pumpAir) return;
+
   elements.pumpAir.textContent = pumpAirState.toUpperCase();
   elements.pumpAir.dataset.state = pumpAirState;
   elements.pumpAir.style.opacity = isAutoAir ? '0.45' : '1';
   elements.pumpAir.style.pointerEvents = isAutoAir ? 'none' : 'auto';
-  if(elements.airCard) {
+  if (elements.airCard) {
     elements.airCard.classList.toggle('active', pumpAirState === 'on' && !isAutoAir);
   }
 }
@@ -285,7 +352,7 @@ elements.downloadCsv.addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `monitoring_jamur_${new Date().toISOString().slice(0,10)}.csv`;
+  link.download = `monitoring_jamur_${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 });
@@ -311,8 +378,8 @@ async function clearAllDataSupabase() {
       data = [];
       currentPage = 1;
       renderTables();
-      
-      if(document.getElementById('grafik').classList.contains('active')) {
+
+      if (document.getElementById('grafik').classList.contains('active')) {
         initChart();
       }
     } else {
@@ -327,5 +394,5 @@ async function clearAllDataSupabase() {
 
 elements.deleteData.addEventListener('click', clearAllDataSupabase);
 
-fetchHistoryFromSupabase(); 
+fetchHistoryFromSupabase();
 updateTime();
