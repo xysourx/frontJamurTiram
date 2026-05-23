@@ -8,7 +8,7 @@ let pumpFanState = 'off';
 let isAutoFan = true;
 let fanSpeed = 100;
 
-const ITEMS_PER_PAGE = 30;
+const ITEMS_PER_PAGE = 10;
 let currentPage = 1;
 
 const MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
@@ -115,11 +115,10 @@ async function fetchHistoryFromSupabase() {
     data = result.map(item => {
       const dateObj = new Date(item.created_at);
       return {
-        time: dateObj.toLocaleTimeString('id-ID', { 
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit' }),
+        time: dateObj.toLocaleDateString('id-ID') + ' ' + dateObj.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
         suhu: parseFloat(item.suhu),
         udara: parseInt(item.kelembapan),
         air: parseFloat(item.jarak_air),
@@ -187,17 +186,42 @@ function renderPaginationControls() {
   const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE) || 1;
   let html = '';
 
-  html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>&lt;</button>`;
+  html += `
+    <button onclick="changePage(1)" 
+      ${currentPage === 1 ? 'disabled' : ''}>
+      &lt;
+    </button>
+  `;
 
-  for (let i = 1; i <= totalPages; i++) {
-    if (i === currentPage) {
-      html += `<button class="active">${i}</button>`;
-    } else {
-      html += `<button onclick="changePage(${i})">${i}</button>`;
-    }
+  let startPage = 1;
+  let endPage = 5;
+
+  if (currentPage > 3) {
+    startPage = currentPage - 2;
+    endPage = currentPage + 2;
   }
 
-  html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>&gt;</button>`;
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - 4);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    html += `
+      <button 
+        onclick="changePage(${i})"
+        class="${i === currentPage ? 'active' : ''}">
+        ${i}
+      </button>
+    `;
+  }
+
+  html += `
+    <button onclick="changePage(${totalPages})"
+      ${currentPage === totalPages ? 'disabled' : ''}>
+      &gt;
+    </button>
+  `;
 
   document.getElementById('pagination-home').innerHTML = html;
   document.getElementById('pagination-riwayat').innerHTML = html;

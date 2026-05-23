@@ -110,7 +110,6 @@ main {
   .grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* PERBAIKAN: Diubah menjadi maksimal 3 agar pas dengan jumlah kartu sensor */
 @media (min-width: 900px) {
   .grid { grid-template-columns: repeat(3, 1fr); }
 }
@@ -144,8 +143,8 @@ main {
   color: #2c3e50;
 }
 
-/* Kabut & Air Control */
-.kabut-card, .air-card {
+/* Kabut Control */
+.kabut-card {
   padding: 1.5rem 1.2rem;
   text-align: center;
 }
@@ -364,4 +363,42 @@ canvas {
   color: #ccc;
   cursor: not-allowed;
   border-color: #eee;
+}
+
+/* ==================== PAGINATION MOBILE ==================== */
+@media (max-width: 768px) {
+
+  .pagination {
+    gap: 6px;
+    margin-top: 1rem;
+    padding: 0 5px;
+  }
+
+  .pagination button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+
+  /* Agar pagination bisa scroll horizontal jika halaman banyak */
+  .pagination {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+
+  .pagination::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tombol aktif */
+  .pagination button.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+  }
 }
