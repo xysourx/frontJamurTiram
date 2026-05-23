@@ -4,7 +4,7 @@ let isAuto = true;
 let pumpAirState = 'off';
 let isAutoAir = true;
 let chart = null;
-let pumpFanState = 'off';
+let fanState = 'off';
 let isAutoFan = true;
 let fanSpeed = 100;
 
@@ -89,6 +89,11 @@ client.on('message', (topic, message) => {
       fanState = payload.fan_state || 'off';
       isAutoFan = payload.mode_fan !== 'MANUAL';
       elements.modeFan.textContent = isAutoFan ? 'AUTO' : 'MANUAL';
+
+      if (payload.fan_speed !== undefined) {
+        fanSpeed = parseInt(payload.fan_speed) || 100;
+        updateFanSpeedUI();
+      }
 
       updatePumpUI();
       updateAirPumpUI();
@@ -346,15 +351,29 @@ function updateFanUI() {
   elements.pumpFan.style.pointerEvents = isAutoFan ? 'none' : 'auto';
 }
 
+function updateFanSpeedUI() {
+  if (elements.fanSpeedInput) {
+    elements.fanSpeedInput.value = fanSpeed;
+    elements.speedValText.textContent = fanSpeed;
+  }
+}
+
 elements.fanSpeedInput.addEventListener('input', (e) => {
-  elements.speedValText.textContent = e.target.value;
+  let value = parseInt(e.target.value);
+  if (isNaN(value)) value = 0;
+  if (value < 0) value = 0;
+  if (value > 100) value = 100;
+  elements.speedValText.textContent = value;
 });
 
 elements.setSpeedBtn.addEventListener('click', () => {
-  const speedPercent = elements.fanSpeedInput.value;
-  const pwmValue = Math.round((speedPercent / 100) * 255);
+  let speedPercent = parseInt(elements.fanSpeedInput.value) || 100;
+  fanSpeed = speedPercent;
 
+  const pwmValue = Math.round((fanSpeed / 100) * 255);
   client.publish(MQTT_TOPIC_FAN_SPEED, pwmValue.toString());
+
+  console.log(`Speed dikirim: ${fanSpeed}% (${pwmValue} PWM)`);
 });
 
 function updateAirPumpUI() {
