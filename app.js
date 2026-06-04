@@ -353,8 +353,12 @@ function updateFanUI() {
 
 function updateFanSpeedUI() {
   if (elements.fanSpeedInput) {
-    elements.fanSpeedInput.value = fanSpeed;
-    elements.speedValText.textContent = fanSpeed;
+    const isUserTyping = (document.activeElement === elements.fanSpeedInput);
+    
+    if (!isUserTyping) {
+      elements.fanSpeedInput.value = fanSpeed;
+      elements.speedValText.textContent = fanSpeed;
+    }
   }
 }
 
