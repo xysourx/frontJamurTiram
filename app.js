@@ -22,7 +22,7 @@ const MQTT_TOPIC_MODE_FAN = 'jamurTrm/nsrl/kontrol/mode_fan';
 const MQTT_TOPIC_FAN = 'jamurTrm/nsrl/kontrol/fan';
 const MQTT_TOPIC_FAN_SPEED = 'jamurTrm/nsrl/kontrol/fan_speed';
 
-const SUPABASE_URL = 'https://nnbppefydzfquldtewvz.supabase.co/rest/v1/log_jamur?select=*&order=created_at.desc&limit=168';
+const SUPABASE_URL = 'https://nnbppefydzfquldtewvz.supabase.co/rest/v1/log_jamur?select=*&order=created_at.desc&limit=350';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5uYnBwZWZ5ZHpmcXVsZHRld3Z6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NTE1ODQsImV4cCI6MjA5MzEyNzU4NH0.baQcxt0P0Oc7U45YlLc9uWXfoZKDRSYO4fqNspjH1j8';
 
 const elements = {
@@ -104,42 +104,60 @@ client.on('message', (topic, message) => {
   }
 });
 
-async function fetchHistoryFromSupabase() {
+async function fetchHistoryFromSupabase(resetPage = false) {
   try {
     const response = await fetch(SUPABASE_URL, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json'
       }
     });
-
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
     const result = await response.json();
-
+    if (!Array.isArray(result)) {
+      throw new Error('Data Supabase bukan array');
+    }
     data = result.map(item => {
       const dateObj = new Date(item.created_at);
       return {
-        time: dateObj.toLocaleDateString('id-ID') + ' ' + dateObj.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
+        time:
+          dateObj.toLocaleDateString('id-ID') + ' ' +
+          dateObj.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
         suhu: parseFloat(item.suhu),
         udara: parseInt(item.kelembapan),
         air: parseFloat(item.jarak_air),
-        kabut: item.status_kabut === 'ON' ? (item.mode === 'AUTO' ? 'ON (A)' : 'ON (M)') : 'OFF'
+        kabut:
+          item.status_kabut === 'ON'
+            ? (item.mode === 'AUTO' ? 'ON (A)' : 'ON (M)')
+            : 'OFF'
       };
     });
-
-    currentPage = 1;
-
+    if (resetPage) {
+      currentPage = 1;
+    }
     renderTables();
-
-    if (document.getElementById('grafik').classList.contains('active')) {
+    const grafikPage = document.getElementById('grafik');
+    if (grafikPage && grafikPage.classList.contains('active')) {
       initChart();
     }
+    console.log(
+      'Riwayat berhasil diperbarui:',
+      data.length,
+      'data'
+    );
   } catch (error) {
-    console.error("Gagal mengambil data dari Supabase:", error);
+    console.error(
+      'Gagal mengambil data Supabase:',
+      error
+    );
   }
 }
 
@@ -290,7 +308,6 @@ function updatePumpUI() {
   elements.kabutCard.classList.toggle('active', pumpState === 'on' && !isAuto);
 }
 
-// ==================== KONTROL POMPA AIR ====================
 elements.pumpAir.addEventListener('click', () => {
   if (isAutoAir) {
     alert("Ubah mode ke MANUAL terlebih dahulu untuk mengontrol Pompa Air!");
@@ -441,5 +458,13 @@ async function clearAllDataSupabase() {
 
 elements.deleteData.addEventListener('click', clearAllDataSupabase);
 
-fetchHistoryFromSupabase();
-updateTime();
+fetchHistoryFromSupabase(true);
+  setInterval(() => {
+    fetchHistoryFromSupabase(false);
+    }, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+    fetchHistoryFromSupabase(false);
+    }
+  }
+);

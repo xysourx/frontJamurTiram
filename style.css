@@ -12,7 +12,6 @@ body {
   overflow-x: hidden;
 }
 
-/* ==================== HEADER ==================== */
 header {
   background: #2c3e50;
   color: white;
@@ -45,7 +44,6 @@ header h1 {
   margin-top: 6px;
 }
 
-/* Navbar Desktop */
 .navbar-desktop {
   display: flex;
   gap: 2rem;
@@ -68,7 +66,6 @@ header h1 {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ==================== MAIN CONTENT ==================== */
 main {
   padding: 1.5rem;
   max-width: 1200px;
@@ -90,7 +87,6 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Page Title - Grafik & Riwayat */
 .page-title {
   font-size: 1.45rem;
   font-weight: 600;
@@ -98,7 +94,6 @@ main {
   margin: 1.8rem 0 1.2rem 0.5rem;
 }
 
-/* Grid Cards */
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -143,7 +138,6 @@ main {
   color: #2c3e50;
 }
 
-/* Kabut Control */
 .kabut-card {
   padding: 1.5rem 1.2rem;
   text-align: center;
@@ -196,7 +190,6 @@ main {
   transform: translateY(-3px);
 }
 
-/* History Card */
 .history-full {
   background: white;
   padding: 1.5rem;
@@ -258,7 +251,6 @@ th {
   font-size: 0.78rem;
 }
 
-/* Chart */
 canvas {
   max-width: 100%;
   height: 380px !important;
@@ -269,7 +261,6 @@ canvas {
   margin: 1.5rem 0;
 }
 
-/* ==================== BOTTOM NAVIGATION ==================== */
 .bottom-nav {
   display: none;
   position: fixed;
@@ -308,7 +299,6 @@ canvas {
   font-size: 0.73rem;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .bottom-nav { display: flex; }
   .navbar-desktop { display: none; }
@@ -325,7 +315,6 @@ canvas {
   }
 }
 
-/* ==================== PAGINATION ==================== */
 .pagination {
   display: flex;
   justify-content: center;
@@ -365,7 +354,6 @@ canvas {
   border-color: #eee;
 }
 
-/* ==================== PAGINATION MOBILE ==================== */
 @media (max-width: 768px) {
 
   .pagination {
@@ -383,7 +371,6 @@ canvas {
     font-weight: 600;
   }
 
-  /* Agar pagination bisa scroll horizontal jika halaman banyak */
   .pagination {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -395,7 +382,6 @@ canvas {
     display: none;
   }
 
-  /* Tombol aktif */
   .pagination button.active {
     background: #3498db;
     color: white;
@@ -403,8 +389,6 @@ canvas {
   }
 }
 
-
-/* ==================== FAN SPEED CONTROL ==================== */
 .fan-speed-control {
   display: flex;
   align-items: center;
@@ -439,7 +423,6 @@ canvas {
   transform: translateY(-2px);
 }
 
-/* Responsive */
 @media (max-width: 600px) {
   .fan-speed-control {
     flex-direction: column;
